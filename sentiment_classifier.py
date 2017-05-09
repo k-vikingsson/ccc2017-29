@@ -12,7 +12,7 @@ negative_tweets = nltk.corpus.twitter_samples.tokenized("negative_tweets.json")
 stopwords = stopwords.words('english') # stopwords to be filtered
 lemmatizer = nltk.stem.wordnet.WordNetLemmatizer()
 
-with open('emojilookup.csv') as emoji_csv:
+with open('emojis.csv') as emoji_csv:
     emojis = {}
     reader = csv.reader(emoji_csv)
     for emoji, text in reader:
