@@ -1,3 +1,21 @@
+##
+## COMP90024 Cluster and Cloud Computing
+## Assignment 2
+## City: Melbourne
+##
+## File: tweet_locator.py
+## Description: Module to find which SA3 city is a tweet posted from.
+##
+## Team 29
+## Members:
+## Name         | Student ID | e-mail
+## Hangyu XIA   | 802971     | hangyux@student.unimelb.edu.au
+## Hanwei ZHU   | 811443     | hanweiz@student.unimelb.edu.au
+## Jinchao CAI  | 838073     | jinchaoc1@student.unimelb.edu.au
+## Wenzhuo MI   | 818944     | miw@student.unimelb.edu.au
+## Zequn MA     | 696586     | zequnm@dimefox.eng.unimelb.edu.au
+##
+
 from shapely.geometry import Polygon
 from shapely.geometry import Point
 import json

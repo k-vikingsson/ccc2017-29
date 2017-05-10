@@ -1,3 +1,21 @@
+/*
+** COMP90024 Cluster and Cloud Computing
+** Assignment 2
+** City: Melbourne
+**
+** File: render.js
+** Description: Rendering javascript for front-end web application.
+**
+** Team 29
+** Members:
+** Name         | Student ID | e-mail
+** Hangyu XIA   | 802971     | hangyux@student.unimelb.edu.au
+** Hanwei ZHU   | 811443     | hanweiz@student.unimelb.edu.au
+** Jinchao CAI  | 838073     | jinchaoc1@student.unimelb.edu.au
+** Wenzhuo MI   | 818944     | miw@student.unimelb.edu.au
+** Zequn MA     | 696586     | zequnm@dimefox.eng.unimelb.edu.au
+*/
+
 var api = {
     "sentiment"     : "http://115.146.93.125:5000/views/city_average_sentiment?callback=?",
     "sentiment_hr"  : "http://115.146.93.125:5000/views/hours_average_sentiment?callback=?",
