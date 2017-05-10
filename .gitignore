@@ -1,1 +1,8 @@
 *.pyc
+
+CCCFrontEnd/.idea/*
+CCCFrontEnd/data/city_language.json
+
+CCCFrontEnd/data/city_lang.json
+
+CCCFrontEnd/data/lang_test.json
