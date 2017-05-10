@@ -36,6 +36,7 @@ if __name__ == '__main__':
 			place_bounds.append(tuple(shape_bound))
 		places.append((place_bounds, name))
 
+	print 'start reading'
 	with open('bigTwitter.json') as tweets_file:
 		for line in tweets_file:
 			if line[0] == '{':
@@ -49,6 +50,7 @@ if __name__ == '__main__':
 				tweet_json['sentiment'] = sent_score
 				tweet_json['emojis'] = emojis
 				tweet_json['sa3_city'] = city
-				target.save(tweet_json)
+				try: db.save(tweet_json)
+				except: continue
 
 
