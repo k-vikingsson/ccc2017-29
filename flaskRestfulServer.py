@@ -1,3 +1,13 @@
+##
+# COMP90024 Cluster and Cloud Computing
+# Assignment 2
+#
+# File name: flaskRestfulServer.py
+# Description: A flask web server that supports ReSTful APIs designed to get scenarios data.
+# Author: Hangyu Xia
+# Last Modified: 5/11/2017
+#
+
 from flask import Flask, jsonify, request, abort, make_response
 import socket
 import json
@@ -44,6 +54,7 @@ def get_city_average_sentiment():
     if callback:
         json_str = callback + '(' + json_str + ')'
     return json_str
+
 
 '''
 @app.route("/views/city_language", methods=['GET'])
@@ -164,5 +175,5 @@ def not_found(error):
 
 
 if __name__ == '__main__':
-    ip = socket.gethostbyname(socket.gethostname())
-    app.run(ip, 5000, debug=True)
+    #ip = socket.gethostbyname(socket.gethostname())
+    app.run("115.146.93.125", 5000, debug=True)
