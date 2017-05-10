@@ -2,6 +2,7 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
 import analyse_tweets as at
+import tweet_locator as tl
 import couchdb
 import json
 
@@ -11,20 +12,23 @@ ACCESS_SECRET = 'VQaNtQhEguRrtcl2Y8UJUAeMb5eKWuXcrCw3ttYmZkpOy'
 CONSUMER_KEY = 'xyMSt6qisWFd1F2UsevzqE6vh'
 CONSUMER_SECRET = 'f0GSnExhl6EMpcHYxAUt3CajPWSJyWdX4Bs96SzRBYwJ78Hwnq'
 SERVER = couchdb.Server("http://cloud:password@115.146.93.125:5984")
-DB = SERVER['tweets_with_sentiment']
+DB = SERVER['final_tweets']
 
 class StdOutListener(StreamListener):
 
     def on_data(self, data):
         tweet_json = json.loads(data)
+        city = tl.find_city(tweet_json)
+        if city == None: return True
         sent_score = at.get_sentiment_score(tweet_json['text'])
         emojis = at.get_emojis(tweet_json['text'])
         tweet_json['_id'] = tweet_json['id_str']
         tweet_json['sentiment'] = sent_score
         tweet_json['emojis'] = emojis
+        tweet_json['sa3_city'] = city
         try: DB.save(tweet_json)
         except: return True
-        print(tweet_json)
+        # print(tweet_json)
         return True
 
     def on_error(self, status):
