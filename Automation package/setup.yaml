@@ -88,6 +88,7 @@
     shell: "curl -X POST -H \"Content-Type: application/json\" http://{{ admin }}:{{ password }} @127.0.0.1:5984/_cluster_setup -d '{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"{{ admin }}\", \"password\":\"{{ password }}\", \"port\": 5984, \"remote_current_user\": \"{{ admin }}\", \"remote_current_password\": \"{{ password }}\" }'"
   - name: add node to couchdb master
     shell: "curl -X POST -H \"Content-Type: application/json\" http://{{ admin }}:{{ password }}@\"{{ master }}\":5984/_cluster_setup -d '{\"action\": \"add_node\", \"host\":\"{{ ansible_eth0[\"ipv4\"][\"address\"] }}\", \"port\": \"5984\", \"username\": \"{{ admin }}\", \"password\":\"{{ password }}\"}'"
+    # when: "{{ ansible_eth0["ipv4"]["address"] }}" != "{{ master }}"
 
   - name: install pip3 for python3
     apt: name=python3-pip state=latest install_recommends=no
@@ -111,9 +112,10 @@
     shell: sudo pip3 install shapely
 
   - name: upload the python script to remote host
-    copy: src={{ python_script }} dest=./harvester.py owner=ubuntu group=ubuntu mode=0700
+    copy: src="{{ item }}" dest=./"{{ item  }}" owner=ubuntu group=ubuntu mode=0700
+    with_items: "{{ python_script }}"
   
   - name: start python
     shell: tmux new-session -s python -d
   - name: start harvester
-    shell: tmux send-keys -t python "python3 harvester.py {{ ansible_eth0["ipv4"]["address"] }}" C-m 
+    shell: tmux send-keys -t python "python3 {{ harvester }} {{ ansible_eth0["ipv4"]["address"] }}" C-m 

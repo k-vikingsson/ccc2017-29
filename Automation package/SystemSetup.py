@@ -64,11 +64,19 @@ class SystemSetup(object):
             'config', 'aws_access_key_id')
         self.aws_secret_access_key = config_parser.get(
             'config', 'aws_secret_access_key')
-        if os.path.exists(self.python_script):
-            pass
-        else:
-            print('python_script does not exist')
-            sys.exit(0)
+        if not self.python_script.startwith('['):
+            print('format of parameter python_script is not right')
+        if not self.python_script.endwith(']'):
+            print('format of parameter python_script is not right')
+        python_script_list = self.python_script[1:-1].split(',')
+        if len(python_script_list) == 0:
+            print('there is no script in parameter python_script')
+        for script in python_script_list:
+            if os.path.exists(script):
+                pass
+            else:
+                print(script + ' does not exist')
+                sys.exit(0)
 
     def run_instances(self):
         region = RegionInfo(name='melbourne', endpoint='nova.rc.nectar.org.au')
@@ -118,6 +126,7 @@ class SystemSetup(object):
             f.write('admin = ' + self.admin + '\n')
             f.write('password = ' + self.password + '\n')
             f.write('python_script = ' + self.python_script + '\n')
+            f.write('harverter = ' + self.python_script[1:-1].split(',')[0])
             f.close()
         command = 'ansible-playbook -i hosts --private-key=' + \
             self.key_name + '.pem' + ' --timeout=30' + ' setup.yaml'
