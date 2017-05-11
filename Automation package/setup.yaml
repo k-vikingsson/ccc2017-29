@@ -1,0 +1,123 @@
+##
+## COMP90024 Cluster and Cloud Computing
+## Assignment 2
+## City: Melbourne
+##
+## File: setup.yaml
+## Description: Yaml script to run in Ansible for automation.
+##
+## Team 29
+## Members:
+## Name         | Student ID | e-mail
+## Hangyu XIA   | 802971     | hangyux@student.unimelb.edu.au
+## Hanwei ZHU   | 811443     | hanweiz@student.unimelb.edu.au
+## Jinchao CAI  | 838073     | jinchaoc1@student.unimelb.edu.au
+## Wenzhuo MI   | 818944     | miw@student.unimelb.edu.au
+## Zequn MA     | 696586     | zequnm@dimefox.eng.unimelb.edu.au
+##
+
+---
+- hosts: default
+  remote_user: ubuntu
+  sudo: yes
+  tasks:   
+  - name: wait for ssh port to be opened in virtual machine
+    wait_for: port=22 delay=1
+
+  - name: update the apt-get index
+    apt: update_cache=yes
+  - name: install dependency package build-essential for couchdb
+    apt: name=build-essential state=latest install_recommends=no
+  - name: install dependency package pkg-config for couchdb
+    apt: name=pkg-config state=latest install_recommends=no
+  - name: install dependency package erlang for couchdb
+    apt: name=erlang state=latest install_recommends=no
+  - name: install dependency package libicu-dev for couchdb
+    apt: name=libicu-dev state=latest install_recommends=no
+  - name: install dependency package libmozjs185-dev for couchdb
+    apt: name=libmozjs185-dev state=latest install_recommends=no
+  - name: install dependency package libcurl4-openssl-dev for couchdb
+    apt: name=libcurl4-openssl-dev state=latest install_recommends=no
+  - name: install dependency package libgeos-dev for couchdb
+    apt: name=libgeos-dev state=latest install_recommends=no
+ 
+  - stat: path=apache-couchdb-2.0.0.tar.gz
+    register: result
+
+  - name: delete apache-couchdb-2.0.0.tar.gz if exists
+    shell: rm apache-couchdb-2.0.0.tar.gz
+    when: result.stat.exists
+
+  - name: download the apache-couchdb-2.0.0 from apache
+    command: wget http://apache.mirror.amaze.com.au/couchdb/source/2.0.0/apache-couchdb-2.0.0.tar.gz
+  - name: unarchive downloaded apache-couchdb-2.0.0.tar.gz to apache-couchdb-2.0.0
+    shell: tar xvf apache-couchdb-2.0.0.tar.gz
+ 
+  - name: install couchdb -> ./configure
+    shell: cd apache-couchdb-2.0.0 && ./configure
+  - name: install couchdb -> make release
+    shell: cd apache-couchdb-2.0.0 && make release
+  - name: copy unarchived couchdb-2.0.0 to /usr/share
+    shell: cd apache-couchdb-2.0.0 && cp -r rel/couchdb /usr/share/couchdb
+  - name: delete file apache-couchdb-2.0.0.tar.gz
+    shell: rm apache-couchdb-2.0.0.tar.gz
+  - name: delete directory apache-couchdb-2.0.0
+    shell: rm -r apache-couchdb-2.0.0
+  - name: change ownership of /usr/share/couchdb
+    shell: chown -R ubuntu:ubuntu /usr/share/couchdb
+  - name: change permission of /usr/share/couchdb
+    shell: chmod -R 700 /usr/share/couchdb
+
+  - name: config vm.args of couchdb for setting up cluster
+    shell: sed -in "17c -name couchdb@{{ ansible_eth0["ipv4"]["address"] }}" /usr/share/couchdb/etc/vm.args
+  - name: config local.ini of couchdb for setting up cluster
+    shell: echo "{{ admin }} = {{ password }}\n\n[chttpd]\nport = 5984\nbind_address = 0.0.0.0\n" >> /usr/share/couchdb/etc/local.ini
+  - name: config sys.args of couchdb for setting up cluster
+    shell: echo "[\n{lager, [\n{error_logger_hwm, 1000},\n{error_logger_redirect, true},\n{handlers, [\n{lager_console_backend, [debug, {\nlager_default_formatter,\n[\ndate, \" \", time,\n\" [\", severity, \"] \",\nnode, \" \", pid, \" \",\nmessage,\n\"\\\\n\"\n]\n}]}\n]},\n{inet_dist_listen_min, 9100},\n{inet_dist_listen_max, 9200}\n]}\n]." > /usr/share/couchdb/releases/2.0.0/sys.config
+  - name: install tmux for start couchdb in background
+    apt: name=tmux state=latest install_recommends=no
+  - name: start tmux session couchdb
+    shell: tmux new-session -s couchdb -d
+  - name: start couchdb in the tmux session
+    shell: tmux send-keys -t couchdb "/usr/share/couchdb/bin/couchdb" C-m 
+
+  - name: install curl for setting up cluster
+    apt: name=curl state=latest install_recommends=no
+    
+  - name: enable couchdb in cluster mode
+    shell: "curl -X POST -H \"Content-Type: application/json\" http://{{ admin }}:{{ password }} @127.0.0.1:5984/_cluster_setup -d '{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\", \"username\": \"{{ admin }}\", \"password\":\"{{ password }}\", \"port\": 5984, \"remote_current_user\": \"{{ admin }}\", \"remote_current_password\": \"{{ password }}\" }'"
+  - name: add node to couchdb master
+    shell: "curl -X POST -H \"Content-Type: application/json\" http://{{ admin }}:{{ password }}@\"{{ master }}\":5984/_cluster_setup -d '{\"action\": \"add_node\", \"host\":\"{{ ansible_eth0[\"ipv4\"][\"address\"] }}\", \"port\": \"5984\", \"username\": \"{{ admin }}\", \"password\":\"{{ password }}\"}'"
+    # when: "{{ ansible_eth0["ipv4"]["address"] }}" != "{{ master }}"
+
+  - name: install pip3 for python3
+    apt: name=python3-pip state=latest install_recommends=no
+  - name: install python3 module setuptools
+    shell: sudo pip3 install setuptools
+  - name: install python3 module tweepy
+    shell: sudo pip3 install tweepy
+  - name: install python3 module sklearn
+    shell: sudo pip3 install sklearn
+  - name: install python3 module numpy
+    shell: sudo pip3 install numpy
+  - name: install python3 module scipy
+    shell: sudo pip3 install scipy
+  - name: install python3 module couchdb
+    shell: sudo pip3 install couchdb
+  - name: install python3 module nltk
+    shell: sudo pip3 install nltk
+  - name: download nltk package
+    shell: echo "import nltk\nnltk.download('twitter_samples')\nnltk.download('punkt')\nnltk.download('stopwords')\nnltk.download('wordnet')" > nltk_set_up.py && python3 nltk_set_up.py
+  - name: install python3 module shapely
+    shell: sudo pip3 install shapely
+
+  - name: upload the python script to remote host
+    copy: src={{ python_script }} dest=./harvester.py owner=ubuntu group=ubuntu mode=0700
+
+  - name: upload the python script to remote host
+    copy: src=./harvester.py dest=./harvester.py owner=ubuntu group=ubuntu mode=0700
+  
+  - name: start python
+    shell: tmux new-session -s python -d
+  - name: start harvester
+    shell: tmux send-keys -t python "python3 harvester.py {{ ansible_eth0["ipv4"]["address"] }}" C-m 
