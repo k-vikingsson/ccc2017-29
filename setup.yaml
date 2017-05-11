@@ -94,12 +94,10 @@
     shell: sudo pip3 install shapely
 
   - name: upload the python script to remote host
-    copy: src={{ python_script }} dest=./harvester.py owner=ubuntu group=ubuntu mode=0700
-
-  - name: upload the python script to remote host
-    copy: src=/Users/Jinchao/Desktop/test.py dest=./harvester.py owner=ubuntu group=ubuntu mode=0700
+    copy: src="{{ item }}" dest=./"{{ item  }}" owner=ubuntu group=ubuntu mode=0700
+    with_items: "{{ python_script }}"
   
   - name: start python
     shell: tmux new-session -s python -d
   - name: start harvester
-    shell: tmux send-keys -t python "python3 harvester.py {{ ansible_eth0["ipv4"]["address"] }}" C-m 
+    shell: tmux send-keys -t python "python3 {{ harvester }} {{ ansible_eth0["ipv4"]["address"] }}" C-m 
